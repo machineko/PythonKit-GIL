@@ -26,7 +26,7 @@ import WinSDK
 //===----------------------------------------------------------------------===//
 // The `PythonLibrary` struct that loads Python symbols at runtime.
 //===----------------------------------------------------------------------===//
-
+@MainActor
 public struct PythonLibrary {
     public enum Error: Swift.Error, Equatable, CustomStringConvertible {
         case pythonLibraryNotFound
