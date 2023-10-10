@@ -27,7 +27,7 @@ import WinSDK
 // The `PythonLibrary` struct that loads Python symbols at runtime.
 //===----------------------------------------------------------------------===//
 
-public struct PythonLibrary {
+public struct PythonLibrary: ~Copyable {
     public enum Error: Swift.Error, Equatable, CustomStringConvertible {
         case pythonLibraryNotFound
         
@@ -89,6 +89,10 @@ public struct PythonLibrary {
         log("Loading symbol '\(name)' from the Python library...")
         return unsafeBitCast(self.loadSymbol(self.pythonLibraryHandle, name), to: type)
     }
+    
+    deinit {
+        
+    }
 }
 
 // Methods of `PythonLibrary` required to load the Python library.
@@ -101,7 +105,7 @@ extension PythonLibrary {
     #if canImport(Darwin)
     private static var libraryNames = ["Python.framework/Versions/:/Python"]
     private static var libraryPathExtensions = [""]
-    private static var librarySearchPaths = ["", "/opt/homebrew/Frameworks/", "/usr/local/Frameworks/"]
+    private static var librarySearchPaths = ["", "/opt/homebrew/Frameworks/", "/usr/local/Frameworks/", "/opt/local/bin/"]
     private static var libraryVersionSeparator = "."
     #elseif os(Linux)
     private static var libraryNames = ["libpython:", "libpython:m"]
