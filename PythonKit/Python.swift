@@ -118,7 +118,7 @@ public struct PythonObject {
 // Make `print(python)` print a pretty form of the `PythonObject`.
 extension PythonObject : CustomStringConvertible {
     /// A textual description of this `PythonObject`, produced by `Python.str`.
-    public var description: String {
+    @MainActor public var description: String {
         // The `str` function is used here because it is designed to return
         // human-readable descriptions of Python objects. The Python REPL also uses
         // it for printing descriptions.
@@ -130,7 +130,7 @@ extension PythonObject : CustomStringConvertible {
 
 // Make `PythonObject` show up nicely in the Xcode Playground results sidebar.
 extension PythonObject : CustomPlaygroundDisplayConvertible {
-    public var playgroundDescription: Any {
+    @MainActor public var playgroundDescription: Any {
         return description
     }
 }
@@ -224,7 +224,7 @@ public enum PythonError : Error, Equatable {
 }
 
 extension PythonError : CustomStringConvertible {
-    public var description: String {
+    @MainActor public var description: String {
         switch self {
         case .exception(let e, let t):
             var exceptionDescription = "Python exception: \(e)"
@@ -410,7 +410,7 @@ public struct ThrowingPythonObject {
         return (elt0, elt1, elt2, elt3)
     }
     
-    public var count: Int? {
+    @MainActor public var count: Int? {
         base.checking.count
     }
 }
@@ -527,7 +527,7 @@ public struct CheckingPythonObject {
         return (elt0, elt1, elt2, elt3)
     }
     
-    public var count: Int? {
+    @MainActor public var count: Int? {
         Int(Python.len(base))
     }
 }
@@ -660,7 +660,7 @@ public extension PythonObject {
 ///     print(Python.len(list)) // Prints 3.
 ///     print(Python.type(list) == Python.list) // Prints true.
 @_fixed_layout
-public let Python = PythonInterface()
+@MainActor public let Python = PythonInterface()
 
 /// An interface for Python.
 ///
@@ -670,6 +670,7 @@ public let Python = PythonInterface()
 ///   directly. Instead, please use the global instance of `PythonInterface`
 ///   called `Python`.
 @dynamicMemberLookup
+@MainActor
 public struct PythonInterface {
     /// A dictionary of the Python builtins.
     public let builtins: PythonObject
@@ -771,7 +772,7 @@ public extension PythonObject {
 
 /// Return true if the specified objects an instance of the low-level Python
 /// type descriptor passed in as 'type'.
-private func isType(_ object: PythonObject,
+@MainActor private func isType(_ object: PythonObject,
                     type: PyObjectPointer) -> Bool {
     let typePyRef = PythonObject(type)
     
@@ -787,7 +788,7 @@ private func isType(_ object: PythonObject,
 }
 
 extension Bool : PythonConvertible, ConvertibleFromPython {
-    public init?(_ pythonObject: PythonObject) {
+    @MainActor public init?(_ pythonObject: PythonObject) {
         guard isType(pythonObject, type: PyBool_Type) else { return nil }
         
         let pyObject = pythonObject.ownedPyObject
@@ -1012,7 +1013,7 @@ extension Float : PythonConvertible, ConvertibleFromPython {
 //===----------------------------------------------------------------------===//
 
 extension Optional : PythonConvertible where Wrapped : PythonConvertible {
-    public var pythonObject: PythonObject {
+    @MainActor public var pythonObject: PythonObject {
         return self?.pythonObject ?? Python.None
     }
 }
@@ -1023,7 +1024,7 @@ extension Optional : PythonConvertible where Wrapped : PythonConvertible {
 
 extension Optional : ConvertibleFromPython
 where Wrapped : ConvertibleFromPython {
-    public init?(_ object: PythonObject) {
+    @MainActor public init?(_ object: PythonObject) {
         if object == Python.None {
             self = .none
         } else {
@@ -1116,14 +1117,14 @@ where Key : ConvertibleFromPython, Value : ConvertibleFromPython {
 //===----------------------------------------------------------------------===//
 
 extension Range : PythonConvertible where Bound : PythonConvertible {
-    public var pythonObject: PythonObject {
+    @MainActor public var pythonObject: PythonObject {
         _ = Python // Ensure Python is initialized.
         return Python.slice(lowerBound, upperBound, Python.None)
     }
 }
 
 extension Range : ConvertibleFromPython where Bound : ConvertibleFromPython {
-    public init?(_ pythonObject: PythonObject) {
+    @MainActor public init?(_ pythonObject: PythonObject) {
         guard isType(pythonObject, type: PySlice_Type) else { return nil }
         guard let lowerBound = Bound(pythonObject.start),
             let upperBound = Bound(pythonObject.stop) else {
@@ -1135,7 +1136,7 @@ extension Range : ConvertibleFromPython where Bound : ConvertibleFromPython {
 }
 
 extension PartialRangeFrom : PythonConvertible where Bound : PythonConvertible {
-    public var pythonObject: PythonObject {
+    @MainActor public var pythonObject: PythonObject {
         _ = Python // Ensure Python is initialized.
         return Python.slice(lowerBound, Python.None, Python.None)
     }
@@ -1143,7 +1144,7 @@ extension PartialRangeFrom : PythonConvertible where Bound : PythonConvertible {
 
 extension PartialRangeFrom : ConvertibleFromPython
 where Bound : ConvertibleFromPython {
-    public init?(_ pythonObject: PythonObject) {
+    @MainActor public init?(_ pythonObject: PythonObject) {
         guard isType(pythonObject, type: PySlice_Type) else { return nil }
         guard let lowerBound = Bound(pythonObject.start) else { return nil }
         guard pythonObject.stop == Python.None,
@@ -1155,7 +1156,7 @@ where Bound : ConvertibleFromPython {
 }
 
 extension PartialRangeUpTo : PythonConvertible where Bound : PythonConvertible {
-    public var pythonObject: PythonObject {
+    @MainActor public var pythonObject: PythonObject {
         _ = Python // Ensure Python is initialized.
         return Python.slice(Python.None, upperBound, Python.None)
     }
@@ -1163,7 +1164,7 @@ extension PartialRangeUpTo : PythonConvertible where Bound : PythonConvertible {
 
 extension PartialRangeUpTo : ConvertibleFromPython
 where Bound : ConvertibleFromPython {
-    public init?(_ pythonObject: PythonObject) {
+    @MainActor public init?(_ pythonObject: PythonObject) {
         guard isType(pythonObject, type: PySlice_Type) else { return nil }
         guard let upperBound = Bound(pythonObject.stop) else { return nil }
         guard pythonObject.start == Python.None,
@@ -1399,7 +1400,7 @@ extension PythonObject : MutableCollection {
         return 0
     }
     
-    public var endIndex: Index {
+    @MainActor public var endIndex: Index {
         return Python.len(self)
     }
     
@@ -1441,7 +1442,7 @@ extension PythonObject : Sequence {
 }
 
 extension PythonObject {
-    public var count: Int {
+    @MainActor public var count: Int {
         checking.count!
     }
 }
@@ -1692,7 +1693,7 @@ public struct PythonFunction {
 }
 
 extension PythonFunction : PythonConvertible {
-    public var pythonObject: PythonObject {
+    @MainActor public var pythonObject: PythonObject {
         // Ensure Python is initialized, and check for version match.
         let versionMajor = Python.versionInfo.major
         let versionMinor = Python.versionInfo.minor
@@ -1774,7 +1775,7 @@ fileprivate extension PythonFunction {
         return pointer
     }()
 
-    private static let sharedMethodImplementation: @convention(c) (
+    @MainActor private static let sharedMethodImplementation: @convention(c) (
         PyObjectPointer?, PyObjectPointer?
     ) -> PyObjectPointer? = { context, argumentsPointer in
         guard let argumentsPointer = argumentsPointer, let capsulePointer = context else {
@@ -1793,7 +1794,7 @@ fileprivate extension PythonFunction {
         }
     }
     
-    private static let sharedMethodWithKeywordsImplementation: @convention(c) (
+    @MainActor private static let sharedMethodWithKeywordsImplementation: @convention(c) (
         PyObjectPointer?, PyObjectPointer?, PyObjectPointer?
     ) -> PyObjectPointer? = { context, argumentsPointer, keywordArgumentsPointer in
         guard let argumentsPointer = argumentsPointer, let capsulePointer = context else {
@@ -1818,7 +1819,7 @@ fileprivate extension PythonFunction {
         }
     }
 
-    private static func setPythonError(swiftError: Error) {
+    @MainActor private static func setPythonError(swiftError: Error) {
         if let pythonObject = swiftError as? PythonObject {
             if Bool(Python.isinstance(pythonObject, Python.BaseException))! {
                 // We are an instance of an Exception class type. Set the exception class to the object's type:
@@ -1879,7 +1880,7 @@ public struct PythonInstanceMethod {
 }
 
 extension PythonInstanceMethod : PythonConvertible {
-    public var pythonObject: PythonObject {
+    @MainActor public var pythonObject: PythonObject {
         let pyFuncPointer = function.pythonObject.ownedPyObject
         let methodPointer = PyInstanceMethod_New(pyFuncPointer)
         return PythonObject(consuming: methodPointer)
@@ -1910,12 +1911,12 @@ public struct PythonClass {
         }
     }
 
-    public init(_ name: String, superclasses: [PythonObject] = [], members: Members = [:]) {
+    @MainActor public init(_ name: String, superclasses: [PythonObject] = [], members: Members = [:]) {
         self.init(name, superclasses: superclasses, members: members.dictionary)
     }
     
     @_disfavoredOverload
-    public init(_ name: String, superclasses: [PythonObject] = [], members: [String: PythonObject] = [:]) {
+    @MainActor public init(_ name: String, superclasses: [PythonObject] = [], members: [String: PythonObject] = [:]) {
         var trueSuperclasses = superclasses
         if !trueSuperclasses.contains(Python.object) {
             trueSuperclasses.append(Python.object)

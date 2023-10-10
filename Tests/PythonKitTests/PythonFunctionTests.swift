@@ -1,7 +1,7 @@
 import XCTest
 import PythonKit
 
-class PythonFunctionTests: XCTestCase {
+@MainActor class PythonFunctionTests: XCTestCase {
     private var canUsePythonFunction: Bool {
         let versionMajor = Python.versionInfo.major
         let versionMinor = Python.versionInfo.minor

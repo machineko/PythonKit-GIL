@@ -2,9 +2,9 @@ import XCTest
 import PythonKit
 
 class NumpyConversionTests: XCTestCase {
-    static var numpyModule = try? Python.attemptImport("numpy")
+    @MainActor static var numpyModule = try? Python.attemptImport("numpy")
     
-    func testArrayConversion() {
+    @MainActor func testArrayConversion() {
         guard let np = NumpyConversionTests.numpyModule else { return }
         
         let numpyArrayEmpty = np.array([] as [Float], dtype: np.float32)

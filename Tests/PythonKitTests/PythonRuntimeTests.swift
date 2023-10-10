@@ -1,7 +1,7 @@
 import XCTest
 import PythonKit
 
-class PythonRuntimeTests: XCTestCase {
+@MainActor class PythonRuntimeTests: XCTestCase {
     func testCheckVersion() {
         XCTAssertGreaterThanOrEqual(Python.versionInfo.major, 2)
         XCTAssertGreaterThanOrEqual(Python.versionInfo.minor, 0)

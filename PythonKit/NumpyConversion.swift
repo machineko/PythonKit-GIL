@@ -18,8 +18,8 @@
 /// The `numpy` Python module.
 /// Note: Global variables are lazy, so the following declaration won't produce
 /// a Python import error until it is first used.
-private let np = Python.import("numpy")
-private let ctypes = Python.import("ctypes")
+@MainActor private let np = Python.import("numpy")
+@MainActor private let ctypes = Python.import("ctypes")
 
 /// A type that can be initialized from a `numpy.ndarray` instance represented
 /// as a `PythonObject`.
@@ -37,7 +37,7 @@ public protocol NumpyScalarCompatible {
 }
 
 extension Bool : NumpyScalarCompatible {
-    public static let numpyScalarTypes = [np.bool_, Python.bool]
+    @MainActor public static let numpyScalarTypes = [np.bool_, Python.bool]
     public static var ctype: PythonObject { return ctypes.c_bool }
 }
 
@@ -100,7 +100,7 @@ where Element : NumpyScalarCompatible {
     /// - Precondition: The `numpy` Python package must be installed.
     /// - Returns: `numpyArray` converted to an `Array`. Returns `nil` if
     ///   `numpyArray` is not 1-D or does not have a compatible scalar `dtype`.
-    public init?(numpy numpyArray: PythonObject) {
+    @MainActor public init?(numpy numpyArray: PythonObject) {
         // Check if input is a `numpy.ndarray` instance.
         guard Python.isinstance(numpyArray, np.ndarray) == true else {
             return nil
