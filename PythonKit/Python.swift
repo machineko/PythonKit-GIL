@@ -662,6 +662,13 @@ public extension PythonObject {
 @_fixed_layout
 @MainActor public let Python = PythonInterface()
 
+extension MainActor {
+  @MainActor(unsafe)
+  static func runUnsafe<R>(_ body: @MainActor () -> R) -> R {
+    body()
+  }
+}
+
 /// An interface for Python.
 ///
 /// `PythonInterface` allows interaction with Python. It can be used to import
@@ -704,7 +711,7 @@ public struct PythonInterface {
     }
     
     public func `import`(_ name: String) -> PythonObject {
-        return try! attemptImport(name)
+        return MainActor.runUnsafe { try! attemptImport(name) }
     }
     
     public subscript(dynamicMember name: String) -> PythonObject {
