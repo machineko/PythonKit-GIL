@@ -105,7 +105,7 @@ extension PythonLibrary {
     #if canImport(Darwin)
     private static var libraryNames = ["Python.framework/Versions/:/Python"]
     private static var libraryPathExtensions = [""]
-    private static var librarySearchPaths = ["", "/opt/homebrew/Frameworks/", "/usr/local/Frameworks/", "/opt/local/bin/"]
+    private static var librarySearchPaths = ["", "/opt/homebrew/Frameworks/", "/usr/local/Frameworks/", "/opt/local/Library/Frameworks/"]
     private static var libraryVersionSeparator = "."
     #elseif os(Linux)
     private static var libraryNames = ["libpython:", "libpython:m"]
